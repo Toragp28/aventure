@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeu Console Aventure BETA </title>
+  <h4>si tu aime se type de jeux je te laisse rejoindre le discorde et participé ou même le guithub</h4>
+  <a href="discord.gg/fGEDmFGrek">discord Commu</a>
+  <style>
+    body {
+      background-color: black;
+      color: limegreen;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      text-shadow: 0 0 10px limegreen;
+      animation: flicker 2s infinite alternate;
+    }
+    @keyframes flicker {
+      0% { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
+    #output {
+      white-space: pre-line;
+      border: 1px solid limegreen;
+      padding: 10px;
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      line-height: 1.5;
+      font-size: 16px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #input {
+      background-color: black;
+      color: limegreen;
+      border: none;
+      border-top: 1px solid limegreen;
+      width: 100%;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 16px;
+      outline: none;
+    }
+    #input::placeholder {
+      color: limegreen;
+      opacity: 0.6;
+    }
+    .cursor::after {
+      content: "_";
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Jeu Aventure Console BETA</h1>
+<div id="output" class="cursor">Bienvenue dans l'aventure. Tape "start" pour commencer.</div>
+<input type="text" id="input" placeholder="> Entrer une commande..." autofocus />
+
+<script>
+  const output = document.getElementById('output');
+const input = document.getElementById('input');
+
+const zones = ["Forêt 🌲", "Désert 🏜️", "Donjon 🕸️", "Montagnes 🗻", "Marais ☠️"];
+const items = ["Potion de vie", "Épée magique", "Clé mystérieuse", "Pierre étrange", "Amulette de feu"];
+const pnjs = ["Sage du désert", "Forgeron perdu", "Marchand fou", "Vieille sorcière"];
+const monsters = [
+  { name: "Loup affamé", hp: 40, attack: 8, xp: 10 },
+  { name: "Bandit masqué", hp: 60, attack: 12, xp: 15 },
+  { name: "Serpent venimeux", hp: 50, attack: 10, xp: 12 }
+];
+const bosses = [
+  { name: "Dragon de flammes", hp: 150, attack: 25, xp: 50 },
+  { name: "Golem de pierre", hp: 200, attack: 15, xp: 40 },
+  { name: "Roi des ombres", hp: 180, attack: 20, xp: 45 }
+];
+
+let gameStarted = false;
+let player = {
+  name: "Héros",
+  hp: 100,
+  attack: 10,
+  inventory: [],
+  xp: 0,
+  level: 1,
+  zone: "Forêt 🌲"
+};
+
+function print(text) {
+  const lines = text.split('\n');
+  lines.forEach((line, i) => {
+    setTimeout(() => {
+      output.innerHTML += '\n' + line;
+      output.scrollTop = output.scrollHeight;
+    }, 50 * i);
+  });
+}
+
+input.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    const command = input.value.trim();
+    input.value = '';
+    output.innerHTML += `\n\n> ${command}`;
+    output.scrollTop = output.scrollHeight;
+
+    if (!gameStarted && command === "start") {
+      gameStarted = true;
+      print("🌟 Aventure commencée !");
+      print(`Vous êtes dans la zone : ${player.zone}`);
+      print('Tape "explore", "stats", "inventory", "fight", "heal", "changezone" ou "help".');
+    } else if (gameStarted) {
+      handleGameCommand(command);
+    } else {
+      print("Tape 'start' pour commencer.");
+    }
+  }
+});
+
+function handleGameCommand(cmd) {
+  switch(cmd) {
+    case "explore":
+      explore();
+      break;
+    case "stats":
+      showStats();
+      break;
+    case "inventory":
+      print("🎒 Inventaire : " + (player.inventory.length ? player.inventory.join(", ") : "Vide"));
+      break;
+    case "help":
+      print("Commandes : explore, stats, inventory, heal, fight, changezone, help");
+      break;
+    case "heal":
+      heal();
+      break;
+    case "fight":
+      fight();
+      break;
+    case "changezone":
+      changeZone();
+      break;
+    default:
+      print("❓ Commande inconnue. Tape 'help'.");
+  }
+}
+
+function explore() {
+  const event = ["pnj", "item", "vide"][Math.floor(Math.random() * 3)];
+  switch(event) {
+    case "pnj":
+      const pnj = pnjs[Math.floor(Math.random() * pnjs.length)];
+      const item = items[Math.floor(Math.random() * items.length)];
+      player.inventory.push(item);
+      print(`🤝 Tu rencontres ${pnj}, il t’offre : ${item}`);
+      break;
+    case "item":
+      const found = items[Math.floor(Math.random() * items.length)];
+      player.inventory.push(found);
+      print(`🧪 Tu trouves un objet : ${found}`);
+      break;
+    default:
+      print("🌫️ Rien ici... continue ton chemin.");
+  }
+}
+
+function showStats() {
+  print(`📊 Stats :
+HP: ${player.hp}
+ATK: ${player.attack}
+XP: ${player.xp}
+Niveau: ${player.level}
+Zone: ${player.zone}`);
+}
+
+function heal() {
+  const index = player.inventory.indexOf("Potion de vie");
+  if (index !== -1) {
+    player.hp = Math.min(100, player.hp + 30);
+    player.inventory.splice(index, 1);
+    print("💖 Tu utilises une Potion de vie. Tes PV sont maintenant : " + player.hp);
+  } else {
+    print("🚫 Tu n’as pas de potion !");
+  }
+}
+
+function fight() {
+  const enemy = monsters[Math.floor(Math.random() * monsters.length)];
+  print(`⚔️ Tu engages un combat contre ${enemy.name} !`);
+
+  while (enemy.hp > 0 && player.hp > 0) {
+    enemy.hp -= player.attack;
+    if (enemy.hp <= 0) {
+      print(`✅ Tu as vaincu ${enemy.name} et gagné ${enemy.xp} XP !`);
+      gainXP(enemy.xp);
+      return;
+    }
+    player.hp -= enemy.attack;
+    if (player.hp <= 0) {
+      print("💀 Tu as été vaincu... Game Over.");
+      gameStarted = false;
+      return;
+    }
+  }
+}
+
+function gainXP(amount) {
+  player.xp += amount;
+  const xpToLevelUp = player.level * 30;
+  if (player.xp >= xpToLevelUp) {
+    player.xp -= xpToLevelUp;
+    player.level++;
+    player.attack += 5;
+    player.hp = 100;
+    print(`🎉 Niveau UP ! Tu es maintenant niveau ${player.level}.`);
+  }
+}
+
+function changeZone() {
+  const availableZones = zones.filter(z => z !== player.zone);
+  const newZone = availableZones[Math.floor(Math.random() * availableZones.length)];
+  player.zone = newZone;
+  print(`🚶 Tu voyages vers une nouvelle zone : ${newZone}`);
+}
+
+
+  function showStats() {
+    print(`❤️ PV : ${player.hp} | 🗡️ ATQ : ${player.attack} | 🌟 Niv: ${player.level}`);
+    print(`📦 Inventaire : ${player.inventory.length ? player.inventory.join(", ") : "Vide"}`);
+    print(`📍 Zone actuelle : ${player.zone}`);
+  }
+</script>
+
+</body>
+</html>
